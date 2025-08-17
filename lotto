@@ -1,0 +1,31 @@
+.github/workflows/build.yml
+name: build-apk
+
+on:
+  workflow_dispatch:      # 수동 실행 버튼
+  push:
+    branches: [ main ]    # main으로 push 되면 자동 실행
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # Kivy의 공식 Buildozer 도커 이미지로 빌드
+      - name: Build with Buildozer (Docker)
+        uses: addnab/docker-run-action@v3
+        with:
+          image: kivy/buildozer:latest
+          options: -v ${{ github.workspace }}:/home/user/app -w /home/user/app
+          run: |
+            buildozer android debug
+
+      # 생성된 APK를 아티팩트로 업로드 (다운로드 가능)
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: bin/*.apk
